@@ -35,28 +35,33 @@
 </section>
 
 <!-- QR Scanner Library -->
-<script src="https://unpkg.com/html5-qrcode"></script>
-<script src="script.js"></script>
+<script
+src="https://unpkg.com/html5-qrcode"></script>
+<div id="reader" style="width:300px;"></div>
 
 <script>
-    function onScanSuccess(decodedText) {
-        document.getElementById("result").style.display = "block";
-        document.getElementById("details").innerText = decodedText;
+function onScanSuccess(decodedText, decodedResult) {
+    alert("QR Scanned: " + decodedText);
 
-        let match = decodedText.match(/OrderID:\s*(\d+)/);
-        if (match) {
-            document.getElementById("result").dataset.orderId = match[1];
-        }
+    // Example:
+    // You can verify order here
+    console.log(decodedText);
+}
 
-        html5QrcodeScanner.clear(); // stop scanning after success
+function onScanError(errorMessage) {
+    // Ignore scan errors
+}
+
+let html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    {
+        fps: 10,
+        qrbox: 250
     }
+);
 
-    let html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: 200 }
-    );
-
-    html5QrcodeScanner.render(onScanSuccess);
+html5QrcodeScanner.render(onScanSuccess, onScanError);
+</script>
 
     function completeOrder() {
         let orderId = document.getElementById("result").dataset.orderId;
