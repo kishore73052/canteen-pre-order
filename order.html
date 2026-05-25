@@ -61,8 +61,32 @@
                                             <h3>${item.name}</h3>
                                             <span class="food-price">₹${item.price}</span>
                                         </div>
-                                        <button onclick="addToCart('${item.name}',${item.price})" style="${btnStyle}" ${btnDisabled}>${btnText}</button>
                                     </div>
+    
+    <div class="img-container">
+        <img src="${item.image}" alt="${item.name}">
+    </div>
+
+    <div class="card-content">
+
+        <div class="food-details">
+            <h3>${item.name}</h3>
+            <span class="food-price">₹${item.price}</span>
+        </div>
+
+        <div class="qty-box">
+
+            <button onclick="decreaseQty('${item.name}')">-</button>
+
+            <span id="qty-${item.name}">0</span>
+
+            <button onclick="increaseQty('${item.name}', ${item.price})">+</button>
+
+        </div>
+
+    </div>
+
+</div>
                                 </div>
                             `;
                         });
