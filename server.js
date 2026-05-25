@@ -24,6 +24,43 @@ let menu = [
     { id: 6, name: "Tea", price: 15, category: "Beverages", image: "images/logo2.png.png", inStock: true }
 ];
 let nextMenuId = 7;
+let users = [];
+
+app.post("/register", (req, res) => {
+  const { name, password, mobile, roll } = req.body;
+
+  const existingUser = users.find(u => u.name === name);
+
+  if (existingUser) {
+    return res.json({ error: "User already exists" });
+  }
+
+  users.push({
+    name,
+    password,
+    mobile,
+    roll
+  });
+
+  res.json({ success: true });
+});
+
+app.post("/login", (req, res) => {
+  const { name, password } = req.body;
+
+  const user = users.find(
+    u => u.name === name && u.password === password
+  );
+
+  if (!user) {
+    return res.json({ error: "Invalid name or password" });
+  }
+
+  res.json({
+    success: true,
+    user
+  });
+});
 
 // POST /order - Receive new order from student
 app.post('/order', (req, res) => {
