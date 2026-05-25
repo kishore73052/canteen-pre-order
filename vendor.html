@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vendor QR Scan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button onclick="history.back()" class="back-btn">⬅️ Back</button>
+
+<header class="header">
+    <img src="images/logo5.png.png" alt="App Logo" class="logo">
+    <h1>🧑‍🍳 Vendor – Scan QR</h1>
+    <p>Scan student QR to verify order</p>
+</header>
+
+<section class="menu">
+    <!-- QR Scanner -->
+    <div class="card" style="text-align:center; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 15px; color: #f8fafc;">🔍 Quick Scan & Verify</h3>
+        <div id="reader" style="width:100%; max-width: 300px; margin:auto; border-radius: 12px; overflow: hidden; background: white;"></div>
+
+        <div id="result" style="margin-top:20px; display:none;">
+            <h3 style="color:#38bdf8;">📦 Scanned Details</h3>
+            <p id="details" style="font-size: 0.95rem; text-align: left; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;"></p>
+            <button onclick="completeOrder()" style="margin-top: 15px;">Handover Food to Student 🤝</button>
+        </div>
+    </div>
+
+    <!-- Live Orders List -->
+    <h2 style="margin-top:20px; border-bottom: 2px solid rgba(56, 189, 248, 0.2); padding-bottom: 10px; color:#38bdf8;">🛎️ Active Orders Dashboard</h2>
+    <div id="ordersContainer" style="display:flex; flex-direction:column; gap:15px; text-align: left;">
+        <p style="text-align: center;">Loading orders...</p>
+    </div>
+</section>
+
+<!-- QR Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="script.js"></script>
+
+<script>
+    function onScanSuccess(decodedText) {
+        document.getElementById("result").style.display = "block";
+        document.getElementById("details").innerText = decodedText;
+
+        let match = decodedText.match(/OrderID:\s*(\d+)/);
+        if (match) {
+            document.getElementById("result").dataset.orderId = match[1];
+        }
+
+        html5QrcodeScanner.clear(); // stop scanning after success
+    }
+
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: 200 }
+    );
+
+    html5QrcodeScanner.render(onScanSuccess);
+
+    function completeOrder() {
+        let orderId = document.getElementById("result").dataset.orderId;
+        const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+        if (orderId) {
+            fetch(`${API_BASE}/orders/${orderId}/complete`, { method: "PUT" })
+                .then(res => res.json())
+                .then(data => {
+                    showToast("Order verified & food given!", "success");
+                    document.getElementById("result").style.display = "none";
+                    delete document.getElementById("result").dataset.orderId;
+                    
+                    // Reinitialize scanner
+                    html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 });
+                    html5QrcodeScanner.render(onScanSuccess);
+                })
+                .catch(e => {
+                    console.error();
+                    showToast("Failed to mark order as complete on server.", "error");
+                });
+        } else {
+            showToast("Order verified & food given! (Local fallback)", "success");
+            document.getElementById("result").style.display = "none";
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 });
+            html5QrcodeScanner.render(onScanSuccess);
+        }
+    }
+
+    // --- Live Orders Fetching ---
+    function loadOrders() {
+        const API_BASE_URL = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+        fetch(API_BASE_URL + "/orders")
+            .then(res => res.json())
+            .then(orders => {
+                const container = document.getElementById("ordersContainer");
+                if (orders.length === 0) {
+                    container.innerHTML = "<p style='text-align:center; color:#94a3b8;'>No orders in the pipeline right now.</p>";
+                    return;
+                }
+
+                container.innerHTML = "";
+                // Reverse iterate so newest orders are at top, or sort by id
+                orders.slice().reverse().forEach(order => {
+                    let itemsText = order.items.map(i => i.item).join(", ");
+                    let card = document.createElement("div");
+                    card.className = "card";
+                    card.style.position = "relative";
+                    
+                    let statusHtml = "";
+                    let actionBtn = "";
+                    
+                    if (order.status === 'pending') {
+                        statusHtml = `<p style="color:#94a3b8; font-weight:600;">Status: ⏳ Waiting for Admin Approval</p>`;
+                    } else if (order.status === 'preparing') {
+                        statusHtml = `
+                            <p style="color:#38bdf8; font-weight:600; font-size: 1.1rem; margin-bottom: 5px;">Status: 👨‍🍳 Preparing...</p>
+                            <p style="color:#facc15; font-size: 1rem;"><strong>Est. Wait Time:</strong> <span style="font-size: 1.2rem; font-weight: bold;">${order.waitTime} mins</span></p>
+                        `;
+                        actionBtn = `<button onclick="markReadyToPick(${order.id})" style="background: linear-gradient(135deg, #10b981, #059669); margin-top:15px;">Mark "Ready to Pick" ✅</button>`;
+                    } else if (order.status === 'completed') {
+                        statusHtml = `<p style="color:#22c55e; font-weight:800; font-size:1.3rem; margin-top: 10px; animation: bounce 2s infinite ease-in-out;">✅ Order is ready to pick</p>`;
+                    }
+
+                    card.innerHTML = `
+                        <h3 style="margin-bottom: 5px; color:#f8fafc;">Order #${order.id} - ${order.name} <span style="color:#94a3b8; font-size: 0.9rem;">(Roll: ${order.roll})</span></h3>
+                        <p style="margin: 10px 0; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;"><strong>Items:</strong> <span style="color: #cbd5e1;">${itemsText}</span></p>
+                        ${statusHtml}
+                        ${actionBtn}
+                    `;
+                    container.appendChild(card);
+                });
+            })
+            .catch(err => {
+                document.getElementById("ordersContainer").innerHTML = "<p style='text-align:center; color:#ef4444;'>Failed to sync orders ❌</p>";
+            });
+    }
+
+    function markReadyToPick(id) {
+        const API_BASE_URL = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+        fetch(`${API_BASE_URL}/orders/${id}/complete`, { method: "PUT" })
+            .then(res => res.json())
+            .then(() => {
+                showToast("Order marked ready for pickup!", "success");
+                loadOrders();
+            });
+    }
+
+    // Call initially and every 5 seconds
+    loadOrders();
+    setInterval(loadOrders, 5000);
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Pickup</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button onclick="history.back()" class="back-btn">⬅️ Back</button>
+
+<header class="header">
+    <img src="images/logo6.png" alt="App Logo" class="logo">
+    <h1>📲 QR Code Pickup</h1>
+    <p>Show this QR at the canteen</p>
+</header>
+
+<section class="menu">
+    <div class="card" style="text-align:center">
+
+        <!-- QR appears here -->
+        <div id="qrcode" style="margin:20px auto;"></div>
+
+        <p><strong>Student:</strong> <span id="student"></span></p>
+        <p><strong>Total:</strong> ₹<span id="total"></span></p>
+
+        <div id="orderTracker" style="background: rgba(2, 6, 23, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <h3 style="color:#38bdf8; margin-bottom: 5px;">📍 Live Tracker</h3>
+            <p id="status-text" style="font-size:1.2rem; font-weight:bold; color: #cbd5e1;">⏳ Pending Approval...</p>
+            <p id="wait-time" style="color:#facc15; display:none; margin-top: 5px;">🔥 Preparing! Est. Wait time: <span id="time-left"></span> mins</p>
+        </div>
+
+        <button onclick="finishOrder()">Finish & Close ✅</button>
+    </div>
+</section>
+
+<!-- QR Code Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="script.js"></script>
+
+<script>
+    let sName = localStorage.getItem("studentName");
+    let sRoll = localStorage.getItem("studentRoll");
+    let myCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    let myTotal = myCart.reduce((sum, i) => sum + Number(i.price), 0);
+
+    document.getElementById("student").innerText =
+        (sName && sRoll) ? `${sName} (${sRoll})` : "No data";
+
+    document.getElementById("total").innerText = myTotal;
+
+    // QR text from cart
+    let itemsText = myCart.map(i => i.item).join(", ");
+    let orderId = localStorage.getItem("currentOrderId") || "Unknown";
+
+    let qrText =
+        "OrderID: " + orderId +
+        "\nStudent: " + sName +
+        "\nRoll: " + sRoll +
+        "\nItems: " + itemsText +
+        "\nTotal: ₹" + myTotal;
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: qrText,
+        width: 200,
+        height: 200
+    });
+
+    // Tracking Polling
+    const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+    
+    // Request notification permission early
+    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+
+    let hasNotifiedReady = false;
+    
+    if (orderId && orderId !== "Unknown") {
+        setInterval(() => {
+            fetch(API_BASE + "/orders/" + orderId)
+                .then(res => res.json())
+                .then(data => {
+                    let st = document.getElementById("status-text");
+                    let wt = document.getElementById("wait-time");
+
+                    if (data.status === 'pending') {
+                        st.innerText = "⏳ Pending Approval...";
+                        st.style.color = "#cbd5e1";
+                        wt.style.display = "none";
+                    } else if (data.status === 'preparing') {
+                        st.innerText = "👨‍🍳 Preparing Food";
+                        st.style.color = "#38bdf8";
+                        wt.style.display = "block";
+                        document.getElementById("time-left").innerText = data.waitTime || "15";
+                    } else if (data.status === 'completed') {
+                        st.innerText = "✅ Order is ready to pick";
+                        st.style.color = "#22c55e";
+                        wt.style.display = "none";
+                        st.style.animation = "bounce 2s infinite ease-in-out";
+                        
+                        if (!hasNotifiedReady) {
+                            showToast("Your order is ready to pick! 🎉", "success");
+                            
+                            // Trigger system push notification
+                            if ("Notification" in window && Notification.permission === "granted") {
+                                new Notification("Order Ready! ✅", {
+                                    body: "Your canteen order is ready to pick up right now.",
+                                    icon: "images/logo2.png.png"
+                                });
+                            }
+                            
+                            hasNotifiedReady = true;
+                        }
+                    }
+                })
+                .catch(err => console.error("Tracking Error:", err));
+        }, 5000);
+    }
+</script>
+
+</body>
+</html>

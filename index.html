@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome | Scan to Snacks</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .welcome-container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 50px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .welcome-logo {
+            width: 150px;
+            animation: bounce 3s infinite ease-in-out;
+            filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.5));
+            margin-bottom: 10px;
+        }
+        .app-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+        .welcome-subtitle {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        .welcome-btn {
+            padding: 16px 50px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: auto;
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+        }
+    </style>
+</head>
+<body class="center">
+    <div class="card welcome-container">
+        <img src="images/logo.png.png" alt="Scan to Snacks Logo" class="welcome-logo">
+        <h1 class="app-title">Scan to Snacks</h1>
+        <p class="welcome-subtitle">Click Welcome to enter the app</p>
+        <button onclick="window.location.href='login.html'" class="welcome-btn">Enter App 🚀</button>
+    </div>
+</body>
+</html>

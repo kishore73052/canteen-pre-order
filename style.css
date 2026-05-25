@@ -1,0 +1,485 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background: #0f172a;
+    background-image: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 40%),
+                      radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.1), transparent 40%);
+    color: #e5e7eb;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #020617; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Header Elements */
+.header {
+    padding: 30px 20px;
+    text-align: center;
+    background: rgba(2, 6, 23, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 5px;
+}
+
+.header p {
+    color: #94a3b8;
+    font-weight: 300;
+}
+
+.logo, .logo-center {
+    width: 60px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
+    animation: bounce 3s infinite ease-in-out;
+}
+
+/* Animations */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Layout Utilities */
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Smart Glass Cards */
+.login-box, .card {
+    position: relative;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    padding: 30px;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+    animation: fadeIn 0.6s ease forwards;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 45px 0 rgba(0, 0, 0, 0.5);
+    border-color: rgba(56, 189, 248, 0.5);
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%);
+    transform: skewX(-25deg);
+    transition: all 0.7s ease;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.card:hover::after {
+    left: 200%;
+}
+
+.login-box { width: 340px; }
+
+/* Ensure card content stays above the decorative shine */
+.card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Typography */
+h2, h3 { color: #f8fafc; margin-bottom: 15px; }
+
+/* Smart Forms & Inputs */
+input, select {
+    width: 100%;
+    padding: 16px;
+    margin-bottom: 20px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(10px);
+}
+
+input:hover, select:hover {
+    border-color: rgba(56, 189, 248, 0.4);
+    background: rgba(15, 23, 42, 0.8);
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #38bdf8;
+    background: rgba(2, 6, 23, 0.8);
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2), inset 0 2px 5px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+}
+
+input::placeholder {
+    color: #64748b;
+    transition: opacity 0.3s ease;
+}
+
+input:focus::placeholder {
+    opacity: 0.5;
+}
+
+/* Smart Buttons */
+button {
+    position: relative;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3), inset 0 -2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transition: all 0.6s ease;
+    z-index: -1;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(14, 165, 233, 0.5), inset 0 -2px 5px rgba(0,0,0,0.2);
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    letter-spacing: 0.5px;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(14, 165, 233, 0.3);
+}
+
+button.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: none;
+}
+button.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+}
+
+/* Menu Layout & Item Cards */
+.menu {
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.section-title {
+    grid-column: 1 / -1;
+    margin-top: 30px;
+    margin-bottom: 5px;
+    font-size: 1.5rem;
+    color: #38bdf8;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.2);
+    padding-bottom: 10px;
+}
+
+/* Food Item Specific Stylings */
+.food-card {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+}
+
+.food-card .card-content {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.food-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.img-container {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.food-card:hover .food-img {
+    transform: scale(1.08);
+}
+
+.food-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex: 1;
+}
+
+.food-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #38bdf8;
+}
+
+/* Lists (Summary Page) */
+ul {
+    list-style: none;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    margin-bottom: 20px;
+}
+ul li {
+    padding: 12px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+ul li:last-child { border-bottom: none; }
+
+/* Toast Notification */
+#toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    border-left: 5px solid #38bdf8;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease-in 2.5s forwards;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.toast.error {
+    border-left-color: #ef4444;
+}
+
+.toast.success {
+    border-left-color: #22c55e;
+}
+
+@keyframes slideIn {
+    0% { transform: translateX(120%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOut {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-20px); opacity: 0; }
+}
+
+/* Smart Back Button */
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: auto;
+    padding: 10px 16px;
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+.back-btn::before {
+    display: none;
+}
+
+.back-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    transform: translateX(-5px);
+    box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+    letter-spacing: 0px;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+    /* Header Adjustments */
+    .header {
+        padding: 20px 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.6rem;
+    }
+
+    /* Back Button Adjustments */
+    .back-btn {
+        top: 15px;
+        left: 10px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Layout & Utilities */
+    .login-box {
+        width: 90%;
+        max-width: 340px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .menu {
+        padding: 20px 10px;
+    }
+
+    /* Grid Layouts - Single Column for smaller screens */
+    .menu-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 15px;
+    }
+    
+    /* Food Items Layout */
+    .food-card .card-content {
+        padding: 15px;
+    }
+    
+    .food-img {
+        height: 180px;
+    }
+    
+    /* Toast Adjustments to center on mobile */
+    #toast-container {
+        bottom: 20px;
+        right: 15px;
+        left: 15px;
+        align-items: center;
+    }
+    .toast {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Extra Small Devices */
+    .header h1 {
+        font-size: 1.4rem;
+    }
+    
+    .welcome-container {
+        padding: 30px 15px;
+    }
+
+    .app-title {
+        font-size: 2.2rem;
+    }
+    
+    .welcome-logo {
+        width: 120px;
+    }
+    
+    .menu-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    input, select, button {
+        padding: 14px;
+        font-size: 0.95rem;
+    }
+    
+    .food-img {
+        height: 160px;
+    }
+}

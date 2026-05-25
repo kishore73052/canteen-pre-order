@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register | Canteen App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="center">
+    <button onclick="history.back()" class="back-btn">⬅️ Back</button>
+    <a href="login.html" style="position: absolute; top: 15px; right: 20px; color: #22c55e; text-decoration: none; font-weight: bold; background: rgba(34, 197, 94, 0.1); padding: 8px 12px; border-radius: 8px; border: 1px solid #22c55e; transition: all 0.3s;">🔐 Login Now</a>
+
+    <div class="login-box">
+        <img src="images/logo.png.png" class="logo-center" alt="Logo">
+        
+        <h2>Create Account</h2>
+
+        <input type="text" id="reg-name" placeholder="Full Student Name">
+        <input type="number" id="reg-roll" placeholder="Roll Number">
+        <input type="text" id="reg-dept" placeholder="Department (e.g. CSE, ECE)">
+        <input type="tel" id="reg-mobile" placeholder="Mobile Number">
+        <input type="password" id="reg-password" placeholder="Create Password">
+
+        <button onclick="registerUser()">Register Account 🚀</button>
+    </div>
+
+    <!-- TOAST & LOGIC -->
+    <script src="script.js"></script>
+</body>
+</html>

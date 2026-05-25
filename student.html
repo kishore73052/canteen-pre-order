@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button onclick="history.back()" class="back-btn">⬅️ Back</button>
+
+<header class="header">
+    <h1>🎓 Student Dashboard</h1>
+</header>
+
+<section class="menu">
+    <h2>Student Information</h2>
+
+    <div class="card">
+        <p><strong>Name:</strong> <span id="sname"></span></p>
+        <p><strong>Roll No:</strong> <span id="sroll"></span></p>
+        <p><strong>Department:</strong> IT</p>
+        <p><strong>Year:</strong> 2nd Year</p>
+
+        <button onclick="goToOrder()">Order Food 🍔</button>
+    </div>
+</section>
+
+<script src="script.js"></script>
+
+<script>
+    document.getElementById("sname").innerText =
+        localStorage.getItem("studentName") || "-";
+
+    document.getElementById("sroll").innerText =
+        localStorage.getItem("studentRoll") || "-";
+
+    function goToOrder() {
+        window.location.href = "order.html";
+    }
+</script>
+
+</body>
+</html>

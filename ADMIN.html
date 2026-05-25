@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button onclick="history.back()" class="back-btn">⬅️ Back</button>
+
+    <header class="header">
+            <img src="images/logo4.png.png" alt="App Logo" class="logo">
+
+        <h1>🧑‍💼 Admin Dashboard</h1>
+        <p>College Canteen Management</p>
+    </header>
+
+    <section class="menu">
+
+        <!-- Reports Dashboard -->
+        <h2 style="margin-top:10px;">📊 Dashboard Reports</h2>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom: 30px;">
+            <div class="card" style="text-align:center; padding: 25px 20px;">
+                <h3 style="color:#94a3b8; font-size:1.1rem; margin-bottom:10px;">Total Earnings</h3>
+                <p id="totalEarnings" style="font-size:2.4rem; font-weight:800; color:#22c55e; margin:0; text-shadow: 0 0 15px rgba(34,197,94,0.3);">₹0</p>
+            </div>
+            <div class="card" style="text-align:center; padding: 25px 20px;">
+                <h3 style="color:#94a3b8; font-size:1.1rem; margin-bottom:10px;">Total Orders</h3>
+                <p id="totalOrders" style="font-size:2.4rem; font-weight:800; color:#38bdf8; margin:0; text-shadow: 0 0 15px rgba(56,189,248,0.3);">0</p>
+            </div>
+            <div class="card" style="text-align:center; padding: 25px 20px;">
+                <h3 style="color:#94a3b8; font-size:1.1rem; margin-bottom:10px;">In Progress</h3>
+                <p id="pendingOrders" style="font-size:2.4rem; font-weight:800; color:#facc15; margin:0; text-shadow: 0 0 15px rgba(250,204,21,0.3);">0</p>
+            </div>
+        </div>
+
+        <h2>🍔 All Student Orders</h2>
+        <div id="ordersContainer">
+            <p>Loading orders...</p>
+        </div>
+
+        <!-- Menu Management -->
+        <h2 style="margin-top:30px;">📋 Manage Menu</h2>
+        <div id="menuContainer" style="display:flex; flex-direction:column; gap:15px; margin-bottom:20px;">
+            <p>Loading menu...</p>
+        </div>
+        
+        <div class="card" style="margin-bottom:30px;">
+            <h3>➕ Add New Item</h3>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <input type="text" id="newItemName" placeholder="Item Name" style="margin-bottom:0;">
+                <input type="number" id="newItemPrice" placeholder="Price (₹)" style="margin-bottom:0;">
+            </div>
+            <select id="newItemCategory">
+                <option value="Main Course">Main Course</option>
+                <option value="Snacks">Snacks</option>
+                <option value="Beverages">Beverages</option>
+            </select>
+            <button onclick="addMenuItem()" style="margin-top:10px;">Add Item ➕</button>
+        </div>
+
+        <!-- Actions -->
+        <h2 style="margin-top:20px;">⚙️ Admin Actions</h2>
+        <div class="card" style="display:flex; gap:15px;">
+            <button onclick="clearData()" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">Clear All Orders 🗑️</button>
+            <button onclick="logout()" class="secondary">Logout 🚪</button>
+        </div>
+
+    </section>
+
+    <script>
+        const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+
+        function loadOrders() {
+            fetch(API_BASE + "/orders")
+                .then(res => res.json())
+                .then(orders => {
+                    // Update Reports
+                    let totalEarnings = 0;
+                    let pendingCount = 0;
+                    orders.forEach(o => {
+                        totalEarnings += Number(o.total);
+                        if(o.status === "pending" || o.status === "preparing") {
+                            pendingCount++;
+                        }
+                    });
+                    document.getElementById("totalEarnings").innerText = `₹${totalEarnings}`;
+                    document.getElementById("totalOrders").innerText = orders.length;
+                    document.getElementById("pendingOrders").innerText = pendingCount;
+
+                    const container = document.getElementById("ordersContainer");
+                    if (orders.length === 0) {
+                        container.innerHTML = "<p>No orders received yet.</p>";
+                        return;
+                    }
+
+                    container.innerHTML = "";
+                    orders.forEach(order => {
+                        let itemsText = order.items.map(i => i.item).join(", ");
+                        let card = document.createElement("div");
+                        card.className = "card";
+                        card.style.marginBottom = "15px";
+                        
+                        let actionBtn = "";
+                        let waitInfo = "";
+                        
+                        if (order.status === 'pending') {
+                            actionBtn = `<button onclick="startPreparing(${order.id})" style="padding: 8px; margin-top: 10px; background: #38bdf8; display: inline-block; width: auto;">Start Preparing 👨‍🍳</button>`;
+                        } else if (order.status === 'preparing') {
+                            waitInfo = `<p style="color:#facc15"><strong>Wait Time:</strong> ${order.waitTime} mins</p>`;
+                        }
+
+                        card.innerHTML = `
+                            <p><strong>Order ID:</strong> #${order.id}</p>
+                            <p><strong>Status:</strong> <span style="color: ${order.status === 'completed' ? '#22c55e' : (order.status === 'preparing' ? '#38bdf8' : '#cbd5e1')}">${order.status.toUpperCase()}</span></p>
+                            ${waitInfo}
+                            <p><strong>Student:</strong> ${order.name} (${order.roll})</p>
+                            <p><strong>Items:</strong> ${itemsText}</p>
+                            <p><strong>Total:</strong> ₹${order.total}</p>
+                            <p><strong>Time:</strong> ${order.time}</p>
+                            ${actionBtn}
+                        `;
+                        container.appendChild(card);
+                    });
+                })
+                .catch(err => {
+                    document.getElementById("ordersContainer").innerHTML = "<p>Failed to load from server ❌</p>";
+                    console.error(err);
+                });
+        }
+
+        // Fetch orders immediately and every 5 seconds
+        loadOrders();
+        setInterval(loadOrders, 5000);
+
+        function clearData() {
+            if (confirm("Are you sure you want to clear all orders?")) {
+                fetch(API_BASE + "/orders", { method: "DELETE" })
+                    .then(res => res.json())
+                    .then(() => {
+                        showToast("All orders cleared", "success");
+                        loadOrders();
+                    })
+                    .catch(e => console.error(e));
+            }
+        }
+
+        function startPreparing(id) {
+            let mins = prompt("Enter estimated waiting time in minutes:", "15");
+            if(mins) {
+                fetch(`${API_BASE}/orders/${id}/prepare`, {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({time: mins})
+                })
+                .then(res => res.json())
+                .then(() => {
+                    showToast("Order is now preparing", "success");
+                    loadOrders();
+                })
+                .catch(e => console.error(e));
+            }
+        }
+
+        function logout() {
+            window.location.href = "login.html";
+        }
+
+        // --- Menu Management ---
+        function loadMenu() {
+            fetch(API_BASE + "/menu")
+                .then(res => res.json())
+                .then(items => {
+                    const container = document.getElementById("menuContainer");
+                    container.innerHTML = "";
+                    items.forEach(item => {
+                        let stockBtn = item.inStock 
+                            ? `<button onclick="updateStock(${item.id}, false)" style="background: #eab308; padding: 8px; font-size: 0.9rem;">Mark Out of Stock 🚫</button>`
+                            : `<button onclick="updateStock(${item.id}, true)" style="background: #22c55e; padding: 8px; font-size: 0.9rem;">Mark In Stock ✅</button>`;
+
+                        let card = document.createElement("div");
+                        card.className = "card";
+                        card.style.display = "flex";
+                        card.style.justifyContent = "space-between";
+                        card.style.alignItems = "center";
+                        card.style.padding = "15px";
+                        card.style.marginBottom = "0";
+                        card.innerHTML = `
+                            <div style="flex:1;">
+                                <h4 style="margin:0; font-size:1.1rem">${item.name} <span style="color:#38bdf8">(₹${item.price})</span> - <small style="color:#94a3b8">${item.category}</small></h4>
+                                <p style="margin:5px 0 0 0; font-size: 0.9rem; color: ${item.inStock ? '#22c55e' : '#ef4444'}">${item.inStock ? 'Available' : 'Out of Stock'}</p>
+                            </div>
+                            <div style="display:flex; gap:10px; flex-wrap: wrap; justify-content: flex-end; width: 60%;">
+                                <button onclick="updatePrice(${item.id}, ${item.price})" style="background: #3b82f6; padding: 8px; width:auto; font-size: 0.9rem;">Price ✏️</button>
+                                ${stockBtn}
+                                <button onclick="deleteItem(${item.id})" style="background: #ef4444; padding: 8px; width:auto; font-size: 0.9rem;">Remove 🗑️</button>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                });
+        }
+
+        function addMenuItem() {
+            let name = document.getElementById("newItemName").value;
+            let price = document.getElementById("newItemPrice").value;
+            let category = document.getElementById("newItemCategory").value;
+            
+            if(!name || !price) {
+                alert("Please enter name and price");
+                return;
+            }
+
+            fetch(API_BASE + "/menu", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({name, price, category})
+            }).then(() => {
+                showToast("Item added", "success");
+                document.getElementById("newItemName").value = '';
+                document.getElementById("newItemPrice").value = '';
+                loadMenu();
+            });
+        }
+
+        function updatePrice(id, oldPrice) {
+            let newPrice = prompt("Enter new price:", oldPrice);
+            if(newPrice && !isNaN(newPrice)) {
+                fetch(API_BASE + "/menu/" + id, {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({price: newPrice})
+                }).then(() => {
+                    showToast("Price updated", "success");
+                    loadMenu();
+                });
+            }
+        }
+
+        function updateStock(id, inStock) {
+            fetch(API_BASE + "/menu/" + id, {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({inStock: inStock})
+            }).then(() => {
+                showToast(inStock ? "Item is now in stock" : "Item marked out of stock", "success");
+                loadMenu();
+            });
+        }
+
+        function deleteItem(id) {
+            if(confirm("Are you sure you want to remove this item?")) {
+                fetch(API_BASE + "/menu/" + id, {
+                    method: "DELETE"
+                }).then(() => {
+                    showToast("Item removed", "success");
+                    loadMenu();
+                });
+            }
+        }
+
+        loadMenu();
+    </script>
+    <script src="script.js"></script>
+
+</body>
+</html>

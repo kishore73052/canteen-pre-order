@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Summary</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <button onclick="history.back()" class="back-btn">⬅️ Back</button>
+
+<header class="header">
+    <img src="images/logo3.png.png" alt="App Logo" class="logo">
+    <h1>🧾 Order Summary</h1>
+</header>
+
+<section class="menu">
+    <div class="card">
+        <p><strong>Student Name:</strong> <span id="name"></span></p>
+        <p><strong>Roll Number:</strong> <span id="roll"></span></p>
+
+        <hr style="margin:15px 0; border-color:#1e293b;">
+
+        <h3>Ordered Items</h3>
+        <ul id="orderList"></ul>
+
+        <hr style="margin:15px 0; border-color:#1e293b;">
+        <p style="font-size: 1.2rem; margin-bottom: 10px;"><strong>Total Price:</strong> ₹<span id="finalTotal">0</span></p>
+
+        <div id="paymentSection" style="text-align:center; padding: 20px; background: rgba(2, 6, 23, 0.5); border-radius: 12px; margin-bottom: 20px;">
+            <h3 style="color:#22c55e;">Scan to Pay</h3>
+            <p>Scan this QR code with PhonePe, GPay, or Paytm to pay ₹<span id="payAmount">0</span></p>
+            <div id="payment-qr" style="margin: 20px auto; display: flex; justify-content: center; padding: 10px; background: white; border-radius: 8px; width: fit-content; min-height: 200px; min-width: 200px;"></div>
+            <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">UPI ID: kishore73052-1@okhdfcbank</p>
+            <div id="timerDisplay" style="font-size: 1.5rem; font-weight: bold; color: #ef4444; margin-top: 15px;">02:00</div>
+            <p id="paymentStatus" style="color: #facc15; margin-top: 10px; font-weight: bold;">⏳ Waiting for payment confirmation...</p>
+            
+            <button id="simPayBtn" onclick="simulatePaymentSuccess()" style="margin-top: 15px; padding: 8px 15px; font-size: 0.9rem; background: #fbbf24; color: #000; border: none; border-radius: 8px; cursor: pointer;">[Demo] Simulate Successful Payment</button>
+        </div>
+    </div>
+</section>
+
+<!-- QR Code Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="script.js"></script>
+
+<script>
+    // Student details
+    document.getElementById("name").innerText =
+        localStorage.getItem("studentName") || "-";
+
+    document.getElementById("roll").innerText =
+        localStorage.getItem("studentRoll") || "-";
+
+    // Cart details
+    let myCart = JSON.parse(localStorage.getItem("cart")) || [];
+    let list = document.getElementById("orderList");
+    let myTotal = 0;
+
+    if (myCart.length === 0) {
+        list.innerHTML = "<li>No items in cart</li>";
+    } else {
+        myCart.forEach(item => {
+            let li = document.createElement("li");
+            li.innerText = item.item + " - ₹" + item.price;
+            list.appendChild(li);
+            myTotal += Number(item.price);
+        });
+    }
+
+    document.getElementById("finalTotal").innerText = myTotal;
+    document.getElementById("payAmount").innerText = myTotal;
+
+    // Generate UPI Payment QR Code
+    let upiID = "kishore73052-1@okhdfcbank"; // Actual UPI ID
+    let payeeName = "Canteen";
+    let upiURL = `upi://pay?pa=${upiID}&pn=${payeeName}&am=${myTotal}&cu=INR`;
+
+    if (myTotal > 0) {
+        new QRCode(document.getElementById("payment-qr"), {
+            text: upiURL,
+            width: 180,
+            height: 180,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+        });
+    }
+
+    // REAL WEBHOOK POLLING LOGIC
+    let currentTxnId = null;
+    let pollingInterval = null;
+    let timeLeft = 120; // 2 minutes
+
+    // 1. Initialize pending transaction with backend
+    const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+    
+    fetch(API_BASE + "/init-payment", { method: "POST" })
+        .then(res => res.json())
+        .then(data => {
+            currentTxnId = data.txnId;
+            // Start listening/polling for webhook confirmation from real gateways
+            pollingInterval = setInterval(pollPaymentStatus, 3000); // Check every 3s
+        })
+        .catch(err => console.error("Could not initialize payment:", err));
+
+    // 2. Timer Loop
+    let timerInterval = setInterval(() => {
+        timeLeft--;
+        let m = Math.floor(timeLeft / 60);
+        let s = timeLeft % 60;
+        document.getElementById("timerDisplay").innerText = 
+            `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            if (pollingInterval) clearInterval(pollingInterval);
+            document.getElementById("payment-qr").innerHTML = "<div style='color:#ef4444; font-weight:bold; margin:auto;'>QR Code Expired</div>";
+            document.getElementById("paymentStatus").innerText = "❌ Session timeout. Please go back and try again.";
+            document.getElementById("paymentStatus").style.color = "#ef4444";
+            document.getElementById("simPayBtn").style.display = "none";
+        }
+    }, 1000);
+
+    // 3. Polling function to verify if Webhook triggered backend automatically
+    function pollPaymentStatus() {
+        if (!currentTxnId || timeLeft <= 0) return;
+        
+        fetch(API_BASE + "/payment-status/" + currentTxnId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    // WEBHOOK RECEIVED BY BACKEND
+                    clearInterval(pollingInterval);
+                    processVerifiedPayment();
+                }
+            })
+            .catch(console.error);
+    }
+
+    function processVerifiedPayment() {
+        clearInterval(timerInterval);
+        document.getElementById("simPayBtn").style.display = "none";
+        document.getElementById("paymentStatus").innerText = "✅ Webhook Verified Payment! Placing order...";
+        document.getElementById("paymentStatus").style.color = "#22c55e";
+        document.getElementById("payment-qr").style.opacity = "0.3";
+        
+        // Automatically go to next page
+        setTimeout(() => {
+            sendOrderToBackend(); // from script.js
+        }, 1500);
+    }
+
+    // 4. Fire Webhook Manually for Testing
+    function simulatePaymentSuccess() {
+        if (timeLeft <= 0 || !currentTxnId) return;
+        
+        document.getElementById("simPayBtn").innerText = "Firing Webhook to Backend...";
+        
+        // This simulates a real payment gateway sending a webhook payload to your backend!
+        fetch(API_BASE + "/webhook/payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ txnId: currentTxnId, status: "completed" })
+        });
+    }
+</script>
+
+</body>
+</html>

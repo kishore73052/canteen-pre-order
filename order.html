@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Food Order | Student</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <button onclick="history.back()" class="back-btn">⬅️ Back</button>
+
+    <header class="header">
+        <img src="images/logo2.png.png" alt="App Logo" class="logo">
+        <h1>🍔 Food Order</h1>
+        <p>Welcome, <span id="studentName"></span></p>
+    </header>
+
+    <section class="menu">
+        <h2>🍽️ Menu</h2>
+
+        <div class="menu-grid" id="menu-grid">
+            <p style="grid-column: 1 / -1; text-align: center; font-size: 1.2rem;">Loading amazing snacks... ⏳</p>
+        </div>
+
+        <!-- Total -->
+        <div class="card" style="margin-top: 40px; text-align: center;">
+            <h3 style="font-size: 1.8rem;">Total: ₹<span id="total">0</span></h3>
+            <button onclick="goToSummary()" style="font-size: 1.2rem; padding: 15px; margin-top: 15px;">Proceed to Checkout 🚀</button>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+    <script>
+        // Load dynamic menu
+        const API_BASE_URL = window.location.protocol === 'file:' ? 'http://localhost:3000' : '';
+        fetch(API_BASE_URL + '/menu')
+            .then(res => res.json())
+            .then(items => {
+                const grid = document.getElementById('menu-grid');
+                grid.innerHTML = '';
+                
+                const categories = ["Main Course", "Snacks", "Beverages"];
+                categories.forEach(cat => {
+                    const catItems = items.filter(i => i.category === cat);
+                    if (catItems.length > 0) {
+                        grid.innerHTML += `<div class="section-title">${cat}</div>`;
+                        catItems.forEach(item => {
+                            const btnDisabled = item.inStock ? "" : "disabled";
+                            const btnText = item.inStock ? "Add to Cart 🛒" : "Out of Stock ❌";
+                            const btnStyle = item.inStock ? "" : "background: #475569; box-shadow: none; cursor: not-allowed; opacity: 0.7;";
+                            const opacityVal = item.inStock ? 1 : 0.6;
+                            
+                            grid.innerHTML += `
+                                <div class="card food-card" style="opacity: ${opacityVal}">
+                                    <div class="img-container">
+                                        <img src="${item.image}" alt="${item.name}" class="food-img" onerror="this.src='images/logo.png.png'">
+                                    </div>
+                                    <div class="card-content">
+                                        <div class="food-details">
+                                            <h3>${item.name}</h3>
+                                            <span class="food-price">₹${item.price}</span>
+                                        </div>
+                                        <button onclick="addToCart('${item.name}',${item.price})" style="${btnStyle}" ${btnDisabled}>${btnText}</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+                if(items.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">Menu is currently empty.</p>';
+                }
+            })
+            .catch(err => {
+                document.getElementById('menu-grid').innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #ef4444;">Failed to load menu.</p>';
+            });
+
+        // Initialize total
+        let initialTotal = cart.reduce((sum, i) => sum + Number(i.price), 0);
+        document.getElementById("total").innerText = initialTotal;
+    </script>
