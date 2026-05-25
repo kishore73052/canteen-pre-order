@@ -128,7 +128,8 @@ function updateCart() {
     /* UPDATE ALL QUANTITY COUNTS */
     cart.forEach(i => {
 
-        let qtyEl = document.getElementById(`qty-${i.item}`);
+        let qtyEl = document.getElementById(`qty-${i.item.replace(/\s+/g,'-')}`);
+        
 
         if (qtyEl) {
             qtyEl.innerText = i.qty;

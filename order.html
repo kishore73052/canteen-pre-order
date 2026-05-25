@@ -78,7 +78,7 @@
 
             <button onclick="decreaseQty('${item.name}')">-</button>
 
-            <span id="qty-${item.name}">0</span>
+            <span id="qty-${item.name.replace(/\s+/g,'-')}">0</span>
 
             <button onclick="increaseQty('${item.name}', ${item.price})">+</button>
 
