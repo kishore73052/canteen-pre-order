@@ -74,24 +74,60 @@ function login() {
 /************ CART ************/
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-function addToCart(item, price) {
-    cart.push({ item: item, price: Number(price) });
-    localStorage.setItem("cart", JSON.stringify(cart));
+function increaseQty(item, price) {
 
-    let total = cart.reduce((sum, i) => sum + Number(i.price), 0);
-    let totalEl = document.getElementById("total");
-    if (totalEl) totalEl.innerText = total;
+    let existing = cart.find(i => i.item === item);
 
-    showToast(item + " added to cart", "success");
-}
-
-function goToSummary() {
-    if (cart.length === 0) {
-        showToast("Your cart is empty", "error");
-        return;
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push({
+            item: item,
+            price: Number(price),
+            qty: 1
+        });
     }
 
-    window.location.href = "summary.html";
+    updateCart();
+}
+
+function decreaseQty(item) {
+
+    let existing = cart.find(i => i.item === item);
+
+    if (!existing) return;
+
+    existing.qty -= 1;
+
+    if (existing.qty <= 0) {
+        cart = cart.filter(i => i.item !== item);
+    }
+
+    updateCart();
+}
+
+function updateCart() {
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+
+    let total = cart.reduce((sum, i) =>
+        sum + (Number(i.price) * i.qty), 0);
+
+    let totalEl = document.getElementById("total");
+
+    if (totalEl) totalEl.innerText = total;
+
+menu.forEach(item => {
+
+   let qtyEl = document.getElementById(`qty-${item.name}`);
+
+   if (qtyEl) {
+
+      let found = cart.find(i => i.item === item.name);
+
+      qtyEl.innerText = found ? found.qty : 0;
+   }
+});
 }
 
 /************ ORDER CONFIRM ************/
@@ -190,4 +226,4 @@ function registerUser() {
         showToast("Registration failed. Backend inactive?", "error");
         console.error(err);
     });
-}
+}
