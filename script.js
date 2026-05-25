@@ -72,8 +72,10 @@ function login() {
 }
 
 /************ CART ************/
+/************ CART ************/
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
+/* ADD ITEM */
 function increaseQty(item, price) {
 
     let existing = cart.find(i => i.item === item);
@@ -89,8 +91,11 @@ function increaseQty(item, price) {
     }
 
     updateCart();
+
+    showToast(item + " added", "success");
 }
 
+/* REMOVE ITEM */
 function decreaseQty(item) {
 
     let existing = cart.find(i => i.item === item);
@@ -106,6 +111,7 @@ function decreaseQty(item) {
     updateCart();
 }
 
+/* UPDATE TOTAL + UI */
 function updateCart() {
 
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -115,19 +121,42 @@ function updateCart() {
 
     let totalEl = document.getElementById("total");
 
-    if (totalEl) totalEl.innerText = total;
+    if (totalEl) {
+        totalEl.innerText = total;
+    }
 
-menu.forEach(item => {
+    /* UPDATE ALL QUANTITY COUNTS */
+    cart.forEach(i => {
 
-   let qtyEl = document.getElementById(`qty-${item.name}`);
+        let qtyEl = document.getElementById(`qty-${i.item}`);
 
-   if (qtyEl) {
+        if (qtyEl) {
+            qtyEl.innerText = i.qty;
+        }
+    });
 
-      let found = cart.find(i => i.item === item.name);
+    /* RESET EMPTY ITEMS TO 0 */
+    document.querySelectorAll("[id^='qty-']").forEach(el => {
 
-      qtyEl.innerText = found ? found.qty : 0;
-   }
-});
+        let itemName = el.id.replace("qty-", "");
+
+        let found = cart.find(i => i.item === itemName);
+
+        if (!found) {
+            el.innerText = 0;
+        }
+    });
+}
+
+/************ GO TO SUMMARY ************/
+function goToSummary() {
+
+    if (cart.length === 0) {
+        showToast("Your cart is empty", "error");
+        return;
+    }
+
+    window.location.href = "summary.html";
 }
 
 /************ ORDER CONFIRM ************/
